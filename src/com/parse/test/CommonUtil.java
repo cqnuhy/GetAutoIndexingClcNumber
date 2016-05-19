@@ -57,16 +57,27 @@ public class CommonUtil {
 		return br;
 	}
 	
+	/**
+	 * 
+	 * @date 2016-5-19 上午10:10:36
+	 * @author HUYI 
+	 * @param fileName
+	 * @param content
+	 * @param fileType
+	 * @param append
+	 * @return
+	 * @throws FileNotFoundException
+	 */
 	// 向文件写入数据
-	public static boolean writeFile(String word,String result,String fileType,boolean append) throws FileNotFoundException{
-		File file = new File(word+"."+fileType);
+	public static boolean writeFile(String fileName,String content,String fileType,boolean append) throws FileNotFoundException{
+		File file = new File(fileName+"."+fileType);
 		if(file.getParentFile() != null){
 			file.getParentFile().mkdirs();
 		}
 		OutputStreamWriter write = new OutputStreamWriter(new FileOutputStream(file, append));
 		BufferedWriter bw = new BufferedWriter(write);
         try {
-        	bw.write(result);
+        	bw.write(content);
         	bw.flush(); 
         	write.close();
 			bw.close();
@@ -75,6 +86,22 @@ public class CommonUtil {
 			e.printStackTrace();
 		}
         return false;
+	}
+	
+	/**
+	 * 
+	 * @date 2016-5-19 上午10:10:05
+	 * @author HUYI 
+	 * @param write
+	 * @param bw
+	 * @param content 带文件格式的文件路径
+	 * @return
+	 * @throws IOException 
+	 */
+	// 批量写入数据，统一关闭流
+	public static void writeFile(OutputStreamWriter write,BufferedWriter bw,String content) throws IOException{
+		bw.write(content+"\r\n");
+        bw.flush(); 
 	}
 	
 	// 将文件内容转化为文本

@@ -1,8 +1,11 @@
 package com.parse.test;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,12 +15,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
+import com.parse.lib.ExcelUtil;
+
 /**
 * Copyright (c) 2016,HUYI<br>
 * All rights reserved.<br>
 * 
 * 文件名称：MainTest.java<br>
-* 摘要：用于词汇扩展（递归概念查询），标引分类号<br>
+* 摘要：统计分类号 下面的句子和分类号出现的频率<br>
 * -------------------------------------------------------<br>
 * 当前版本：1.1.1<br>
 * 作者：HUYI<br>
@@ -44,6 +49,7 @@ public class MainTest {
 		// to save clcList
 		List<String> clcList = null;
 		
+		@SuppressWarnings("resource")
 		Scanner sc = new Scanner(System.in);
 		while (true) {
 			showMenu(1);
@@ -97,15 +103,39 @@ public class MainTest {
 						System.out.println(fileName+"解析完成，其中"+failedStr.toString()+"参数获取结果出错。");
 						CommonUtil.writeFile(fileName+"错误日志", failedStr.toString(), "log", true);
 					}
-					// write to file when this loop is over 
-					for (Entry<String, List<String>> map : result.entrySet()) {
-						CommonUtil.writeFile(thisFileName+".clc", map.getKey()+"\r\n", "txt", true);
-						for (String context : map.getValue()) {
-							String sub =context.substring(0, context.indexOf(suffix)-1);
-							CommonUtil.writeFile(thisFileName+".clc", sub+"\r\n", "txt", true);
+					// 统计每个分类号下包含的句子，写入txt
+					String absoluteFile = thisFileName+".clc.txt";
+					File file = new File(absoluteFile);
+					if(file.getParentFile() != null){	file.getParentFile().mkdirs();	}
+					OutputStreamWriter write = new OutputStreamWriter(new FileOutputStream(file, true));
+					BufferedWriter bw = new BufferedWriter(write);
+					try {
+						for (Entry<String, List<String>> map : result.entrySet()) {
+							CommonUtil.writeFile(write, bw, map.getKey()+"\r\n");
+							for (String context : map.getValue()) {
+								String sub =context.substring(0, context.indexOf(suffix)-1);
+								CommonUtil.writeFile(write, bw, sub+"\r\n");
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}finally{
+						if(null!=write){
+							write.close();
+						}
+						if(null!=bw){
+							bw.close();
 						}
 					}
-//					ExcelUtil.exportExcel(result, thisFileName.substring(0, thisFileName.lastIndexOf("."))+".统计表.xls");
+//					for (Entry<String, List<String>> map : result.entrySet()) {
+//						CommonUtil.writeFile(thisFileName+".clc", map.getKey()+"\r\n", "txt", true);
+//						for (String context : map.getValue()) {
+//							String sub =context.substring(0, context.indexOf(suffix)-1);
+//							CommonUtil.writeFile(thisFileName+".clc", sub+"\r\n", "txt", true);
+//						}
+//					}
+					// 统计每个分类号出现的次数，写入excel
+					ExcelUtil.exportExcel(result, thisFileName.substring(0, thisFileName.lastIndexOf("."))+".统计表.xls");
 				}
 				
 				System.out.println("所有文件解析完成，共耗时："+(System.currentTimeMillis()-start)/(1000*60)+"分钟");
